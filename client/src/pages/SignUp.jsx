@@ -2,59 +2,47 @@ import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import axios from 'axios';
 import { FaUser, FaEnvelope, FaLock, FaArrowRight } from "react-icons/fa";
+import OAuth from "../components/OAuth.jsx";
 
 function SignUp() {
-  const [formData, setFormData] = useState({
-    username: "",
-    email: "",
-    password: "",
-  });
+  const [formData, setFormData] = useState({ username: "", email: "", password: "" });
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
   const handleChange = (e) => {
-    setFormData((data) => {
-      return { ...data, [e.target.id]: e.target.value };
-    });
+    setFormData({ ...formData, [e.target.id]: e.target.value });
   };
 
   async function handleSubmit(e) {
     e.preventDefault();
     setLoading(true);
-
     try {
-      const { data } = await axios.post('/api/auth/signup', formData, {
-        withCredentials: true,
-      });
+      await axios.post('/api/auth/signup', formData, { withCredentials: true });
       navigate('/sign-in');
     } catch (error) {
-      if (error.response) {
-        setError(error.response.data.message);
-      }
+      setError(error.response?.data?.message || error.message);
     } finally {
       setLoading(false);
     }
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-50 flex items-center justify-center p-4">
-      <div className="bg-white rounded-2xl shadow-xl overflow-hidden w-full max-w-md">
-        <div className="p-8">
+    <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4 pt-20">
+      <div className="w-full max-w-md">
+        <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-8 animate-fade-in-up">
           <div className="text-center mb-8">
-            <h1 className="text-3xl font-bold text-slate-800 mb-2">Create Account</h1>
-            <p className="text-gray-500">Join us to find your perfect place</p>
+            <h1 className="text-2xl font-bold text-slate-900 mb-1">Create account</h1>
+            <p className="text-slate-500 text-sm">Join us to find your perfect place</p>
           </div>
 
-          <form onSubmit={handleSubmit} className="space-y-5">
+          <form onSubmit={handleSubmit} className="space-y-4">
             <div className="relative">
-              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <FaUser className="h-5 w-5 text-gray-400" />
-              </div>
+              <FaUser className="absolute left-3.5 top-3.5 text-slate-400" />
               <input
                 type="text"
                 placeholder="Username"
-                className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                className="input-field pl-10"
                 id="username"
                 onChange={handleChange}
                 required
@@ -62,13 +50,11 @@ function SignUp() {
             </div>
 
             <div className="relative">
-              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <FaEnvelope className="h-5 w-5 text-gray-400" />
-              </div>
+              <FaEnvelope className="absolute left-3.5 top-3.5 text-slate-400" />
               <input
                 type="email"
-                placeholder="Email address"
-                className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                placeholder="Email"
+                className="input-field pl-10"
                 id="email"
                 onChange={handleChange}
                 required
@@ -76,70 +62,49 @@ function SignUp() {
             </div>
 
             <div className="relative">
-              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <FaLock className="h-5 w-5 text-gray-400" />
-              </div>
+              <FaLock className="absolute left-3.5 top-3.5 text-slate-400" />
               <input
                 type="password"
                 placeholder="Password"
-                className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                className="input-field pl-10"
                 id="password"
                 onChange={handleChange}
                 required
               />
             </div>
 
-            <button
-              disabled={loading}
-              className="w-full bg-blue-600 text-white py-3 px-4 rounded-lg font-medium hover:bg-blue-700 transition-colors flex items-center justify-center gap-2 disabled:opacity-80 disabled:cursor-wait"
-            >
+            <button disabled={loading} className="w-full btn-primary flex items-center justify-center gap-2">
               {loading ? (
                 <>
-                  <svg className="animate-spin -ml-1 mr-2 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                  </svg>
-                  Creating Account...
+                  <div className="animate-spin h-4 w-4 border-2 border-white/30 border-t-white rounded-full"></div>
+                  Creating...
                 </>
               ) : (
-                <>
-                  Sign Up <FaArrowRight className="text-sm" />
-                </>
+                <>Sign Up <FaArrowRight className="text-sm" /></>
               )}
             </button>
           </form>
 
-          <div className="my-6 flex items-center">
-            <div className="flex-grow border-t border-gray-200"></div>
-            <span className="mx-4 text-gray-500 text-sm">Or continue with</span>
-            <div className="flex-grow border-t border-gray-200"></div>
+          <div className="my-6 flex items-center gap-3">
+            <div className="h-px bg-slate-200 flex-1"></div>
+            <span className="text-slate-400 text-xs">or</span>
+            <div className="h-px bg-slate-200 flex-1"></div>
           </div>
 
-          {/* Placeholder for OAuth component */}
-          {/* <OAuth /> */}
+          <OAuth />
 
-          <div className="text-center mt-6">
-            <p className="text-gray-600">Already have an account?</p>
-            <Link
-              to="/sign-in"
-              className="inline-flex items-center text-blue-600 hover:text-blue-800 font-medium mt-2 transition-colors"
-            >
-              Sign in now
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 ml-1" viewBox="0 0 20 20" fill="currentColor">
-                <path fillRule="evenodd" d="M10.293 5.293a1 1 0 011.414 0l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414-1.414L12.586 11H5a1 1 0 110-2h7.586l-2.293-2.293a1 1 0 010-1.414z" clipRule="evenodd" />
-              </svg>
+          <p className="text-center mt-6 text-sm text-slate-600">
+            Already have an account?{' '}
+            <Link to="/sign-in" className="text-primary-600 font-medium hover:underline">
+              Sign in
             </Link>
-          </div>
+          </p>
 
           {error && (
-            <div className="mt-6 p-3 bg-red-50 text-red-700 rounded-lg border border-red-200 text-sm">
+            <div className="mt-4 p-3 bg-red-50 text-red-600 rounded-lg text-sm text-center">
               {error}
             </div>
           )}
-        </div>
-        
-        <div className="bg-gray-50 p-4 text-center text-xs text-gray-500">
-          By signing up, you agree to our Terms of Service and Privacy Policy.
         </div>
       </div>
     </div>

@@ -1,113 +1,94 @@
 import { Link } from "react-router-dom";
-import { MdLocationOn } from "react-icons/md";
-import { MdOutlineBookmarkAdd } from "react-icons/md";
+import { MdLocationOn, MdOutlineBookmarkAdd } from "react-icons/md";
 import { BsFillBookmarksFill } from "react-icons/bs";
 import { useDispatch, useSelector } from "react-redux";
-import { addSavedListing , removeSavedListing} from "../redux/user/userSlice";
+import { addSavedListing, removeSavedListing } from "../redux/user/userSlice";
 import axios from "axios";
 
-
-
 export default function ListingItem({ listing }) {
-
-  const {currentUser} = useSelector(state => state.user)
-  const dispatch = useDispatch()
+  const { currentUser } = useSelector(state => state.user);
+  const dispatch = useDispatch();
 
   async function addToBookMarkHandler(listingId) {
-
-    if(currentUser){
+    if (currentUser) {
       try {
-        dispatch(addSavedListing(listingId))
-        const {data} = await axios.post(`/api/listing/save/${listingId}`)
+        dispatch(addSavedListing(listingId));
+        await axios.post(`/api/listing/save/${listingId}`);
       } catch (error) {
-        if(error.response){
-          alert(error.response.data.message);
-        }
-        else{
-          alert(error.message);
-        }
+        alert(error.response?.data?.message || error.message);
       }
+    } else {
+      alert('You must be logged in first');
     }
-    else{
-      alert('You must be logged in first')
-    }
-  } 
+  }
 
   async function removeFromBookMarkHandler(listingId) {
-    if(currentUser){
+    if (currentUser) {
       try {
-        dispatch(removeSavedListing(listingId))
-        const {data} = await axios.post(`/api/listing/save/${listingId}?type=unsave`)
+        dispatch(removeSavedListing(listingId));
+        await axios.post(`/api/listing/save/${listingId}?type=unsave`);
       } catch (error) {
-        if(error.response){
-          alert(error.response.data.message);
-        }
-        else{
-          alert(error.message);
-        }
+        alert(error.response?.data?.message || error.message);
       }
+    } else {
+      alert('You must be logged in first');
     }
-    else{
-      alert('You must be logged in first')
-    }    
   }
 
   return (
-    <div className="bg-white shadow-md hover:shadow-lg transition-shadow overflow-hidden rounded-lg w-full sm:w-[330px]">
-      <Link to={`/listing/${listing._id}`}>
+    <div className="card group flex flex-col h-full overflow-hidden">
+      <Link to={`/listing/${listing._id}`} className="relative block h-48 overflow-hidden">
         <img
-          src={
-            listing.imageUrls[0] ||
-            "https://53.fs1.hubspotusercontent-na1.net/hub/53/hubfs/Sales_Blog/real-estate-business-compressor.jpg?width=595&height=400&name=real-estate-business-compressor.jpg"
-          }
+          src={listing.imageUrls[0] || "https://53.fs1.hubspotusercontent-na1.net/hub/53/hubfs/Sales_Blog/real-estate-business-compressor.jpg?width=595&height=400&name=real-estate-business-compressor.jpg"}
           alt="listing cover"
-          className="h-[320px] sm:h-[220px] w-full object-cover hover:scale-105 transition-scale duration-300"
+          className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-300"
         />
-        </Link>
-        <div className="p-3 flex flex-col gap-2 w-full">
-          <p className="truncate text-lg font-semibold text-slate-700">
-            {listing.name}
-          </p>
+        {listing.offer && (
+          <span className="absolute top-3 left-3 bg-primary-600 text-white text-xs font-medium px-2 py-1 rounded">
+            Offer
+          </span>
+        )}
+      </Link>
 
-          <div className="flex items-center gap-1">
-            <MdLocationOn className="h-4 w-4 text-green-700" />
-            <p className="text-sm text-gray-600 truncate w-full">
-              {listing.address}
-            </p>
-          </div>
-          <p className="text-sm text-gray-600 line-clamp-2">
-            {listing.description}
-          </p>
-          <p className="text-slate-500 mt-2 font-semibold ">
-            $
-            {listing.offer
+      <div className="p-4 flex flex-col flex-1">
+        <h3 className="font-semibold text-slate-800 truncate mb-1 group-hover:text-primary-600 transition-colors">
+          {listing.name}
+        </h3>
+
+        <div className="flex items-center gap-1 text-slate-500 text-sm mb-2">
+          <MdLocationOn className="text-primary-500 shrink-0" />
+          <p className="truncate">{listing.address}</p>
+        </div>
+
+        <p className="text-sm text-slate-500 line-clamp-2 mb-3 flex-grow">
+          {listing.description}
+        </p>
+
+        <div className="flex items-center justify-between pt-3 border-t border-slate-100">
+          <p className="text-primary-600 font-bold">
+            ${listing.offer
               ? listing.discountPrice.toLocaleString("en-US")
               : listing.regularPrice.toLocaleString("en-US")}
-            {listing.type === "rent" && " / month"}
+            {listing.type === "rent" && <span className="text-xs font-normal text-slate-500">/mo</span>}
           </p>
-          <div className="text-slate-700 flex justify-between items-center">
-            <div className="flex gap-4">
-              <div className="font-bold text-xs">
-                {listing.bedrooms > 1
-                  ? `${listing.bedrooms} beds `
-                  : `${listing.bedrooms} bed `}
-              </div>
-              <div className="font-bold text-xs">
-                {listing.bathrooms > 1
-                  ? `${listing.bathrooms} baths `
-                  : `${listing.bathrooms} bath `}
-              </div>
-            </div>
 
-            {currentUser && currentUser.saved && currentUser.saved.length>0 &&  currentUser.saved.includes(listing._id)==true ? (
-              <BsFillBookmarksFill onClick={()=>  removeFromBookMarkHandler(listing._id)} size={35} className="self-end hover:scale-125 transition-transform duration-200 hover:text-blue-500" />
-            ) : (
-              <MdOutlineBookmarkAdd onClick={()=>  addToBookMarkHandler(listing._id)} size={35} className="self-end hover:scale-125 transition-transform duration-200 hover:text-blue-500" />
-            ) }
-
-          </div>
+          {currentUser && currentUser.saved?.includes(listing._id) ? (
+            <button onClick={() => removeFromBookMarkHandler(listing._id)} className="text-primary-500 hover:scale-110 transition-transform">
+              <BsFillBookmarksFill size={18} />
+            </button>
+          ) : (
+            <button onClick={() => addToBookMarkHandler(listing._id)} className="text-slate-400 hover:text-primary-500 transition-colors">
+              <MdOutlineBookmarkAdd size={20} />
+            </button>
+          )}
         </div>
-      
+
+        <div className="flex gap-3 mt-2 text-xs text-slate-500">
+          <span>{listing.bedrooms} {listing.bedrooms > 1 ? 'Beds' : 'Bed'}</span>
+          <span>•</span>
+          <span>{listing.bathrooms} {listing.bathrooms > 1 ? 'Baths' : 'Bath'}</span>
+        </div>
+      </div>
     </div>
   );
 }

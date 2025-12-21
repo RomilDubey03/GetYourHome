@@ -5,13 +5,14 @@ import { Navigation, Autoplay, EffectFade } from 'swiper/modules';
 import SwiperCore from 'swiper';
 import 'swiper/css/bundle';
 import ListingItem from '../components/ListingItem';
+import { FaArrowRight } from 'react-icons/fa';
 
 export default function Home() {
   const [offerListings, setOfferListings] = useState([]);
   const [saleListings, setSaleListings] = useState([]);
   const [rentListings, setRentListings] = useState([]);
   SwiperCore.use([Navigation, Autoplay, EffectFade]);
-  
+
   useEffect(() => {
     const fetchOfferListings = async () => {
       try {
@@ -45,69 +46,56 @@ export default function Home() {
     };
     fetchOfferListings();
   }, []);
-  
+
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-slate-50">
       {/* Hero Section */}
-      <div className="relative flex flex-col gap-6 px-4 py-20 md:px-8 lg:px-28 lg:pb-10 lg:pt-32 max-w-7xl mx-auto">
-        {/* Background gradient */}
-        <div className="absolute inset-0 bg-gradient-to-r from-blue-50 to-indigo-50 -z-10 rounded-b-3xl"></div>
-        
-        <h1 className='text-slate-800 font-bold text-4xl lg:text-6xl leading-tight'>
-          Find your next <span className='text-blue-600'>perfect</span>
-          <br />
-          place with ease
-        </h1>
-        <div className='text-gray-600 text-base sm:text-lg max-w-2xl'>
-          GetYourHome is the best place to find your next perfect place to
-          live. We have a wide range of properties for you to choose from.
-        </div>
-        <div className="flex flex-col sm:flex-row gap-4 mt-4">
-          <Link
-            to={'/search'}
-            className='px-6 py-3 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors shadow-md hover:shadow-lg'
-          >
-            Get Started
-          </Link>
-          <Link
-            to={'/search?offer=true'}
-            className='px-6 py-3 bg-white text-blue-600 font-medium rounded-lg border border-blue-200 hover:bg-blue-50 transition-colors'
-          >
-            View Special Offers
-          </Link>
+      <div className="pt-24 pb-16 lg:pt-32 lg:pb-20">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="max-w-2xl animate-fade-in-up">
+            <h1 className='text-slate-900 font-heading font-bold text-4xl lg:text-6xl leading-tight mb-6'>
+              Find your perfect place with ease
+            </h1>
+            <p className='text-slate-600 text-lg leading-relaxed mb-8'>
+              Discover a wide range of properties curated just for you. From cozy apartments to spacious family homes.
+            </p>
+            <div className="flex flex-wrap gap-3">
+              <Link to={'/search'} className='btn-primary inline-flex items-center gap-2'>
+                Start Exploring
+                <FaArrowRight className="text-sm" />
+              </Link>
+              <Link to={'/search?offer=true'} className='btn-secondary'>
+                View Offers
+              </Link>
+            </div>
+          </div>
         </div>
       </div>
 
-      {/* Featured Listings Swiper */}
-      <div className="max-w-7xl mx-auto px-4 py-12">
-        <div className="mb-10 text-center">
-          <h2 className="text-3xl font-bold text-slate-800">Featured Properties</h2>
-          <p className="text-gray-500 mt-2">Discover our most popular listings</p>
-        </div>
-        
-        {offerListings && offerListings.length > 0 && (
-          <Swiper 
-            navigation 
+      {/* Featured Swiper */}
+      {offerListings && offerListings.length > 0 && (
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-16">
+          <Swiper
+            navigation
             autoplay={{ delay: 5000 }}
             effect={'fade'}
             loop={true}
-            className="rounded-2xl shadow-xl overflow-hidden"
+            className="rounded-2xl overflow-hidden h-[400px] md:h-[480px]"
           >
             {offerListings.map((listing) => (
               <SwiperSlide key={listing._id}>
                 <div
                   style={{
-                    background: `linear-gradient(rgba(0,0,0,0.4), rgba(0,0,0,0.4)), url(${listing.imageUrls[0]}) center no-repeat`,
-                    backgroundSize: 'cover',
+                    background: `linear-gradient(to top, rgba(0,0,0,0.7), rgba(0,0,0,0.1)), url(${listing.imageUrls[0]}) center/cover no-repeat`,
                   }}
-                  className='h-[500px] flex items-end p-8'
+                  className='h-full flex items-end p-8 md:p-10'
                 >
-                  <div className="text-white">
-                    <h3 className="text-2xl font-bold mb-2">{listing.name}</h3>
-                    <p className="mb-4 max-w-md">{listing.description.substring(0, 120)}...</p>
-                    <Link 
+                  <div className="text-white max-w-xl">
+                    <h3 className="text-2xl md:text-3xl font-bold mb-2 font-heading">{listing.name}</h3>
+                    <p className="mb-4 text-white/80 text-sm md:text-base line-clamp-1">{listing.address}</p>
+                    <Link
                       to={`/listing/${listing._id}`}
-                      className="inline-block px-5 py-2 bg-white text-blue-600 font-medium rounded-lg hover:bg-blue-50 transition-colors"
+                      className="inline-block px-5 py-2.5 bg-white text-slate-900 text-sm font-medium rounded-lg hover:bg-slate-100 transition-colors"
                     >
                       View Details
                     </Link>
@@ -116,75 +104,70 @@ export default function Home() {
               </SwiperSlide>
             ))}
           </Swiper>
-        )}
-      </div>
+        </div>
+      )}
 
-      {/* listing results for offer, sale and rent */}
-      <div className='max-w-7xl mx-auto px-4 py-12 flex flex-col gap-12'>
+      {/* Listing Sections */}
+      <div className='max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 space-y-16 pb-24'>
+
+        {/* Offers */}
         {offerListings && offerListings.length > 0 && (
-          <div className=''>
-            <div className='flex justify-between items-center mb-6'>
-              <h2 className='text-2xl font-bold text-slate-800'>Recent offers</h2>
-              <Link 
-                className='text-blue-600 hover:text-blue-800 font-medium flex items-center gap-1 group' 
-                to={'/search?offer=true'}
-              >
-                Show all offers
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 group-hover:translate-x-1 transition-transform" viewBox="0 0 20 20" fill="currentColor">
-                  <path fillRule="evenodd" d="M10.293 5.293a1 1 0 011.414 0l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414-1.414L12.586 11H5a1 1 0 110-2h7.586l-2.293-2.293a1 1 0 010-1.414z" clipRule="evenodd" />
-                </svg>
+          <section>
+            <div className='flex justify-between items-end mb-6'>
+              <div>
+                <h2 className='section-title'>Recent Offers</h2>
+                <p className="section-subtitle">Deals you don't want to miss</p>
+              </div>
+              <Link to={'/search?offer=true'} className='text-primary-600 hover:text-primary-700 font-medium text-sm flex items-center gap-1'>
+                View all <FaArrowRight className="text-xs" />
               </Link>
             </div>
-            <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6'>
+            <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6'>
               {offerListings.map((listing) => (
                 <ListingItem listing={listing} key={listing._id} />
               ))}
             </div>
-          </div>
+          </section>
         )}
-        
+
+        {/* Rent */}
         {rentListings && rentListings.length > 0 && (
-          <div className=''>
-            <div className='flex justify-between items-center mb-6'>
-              <h2 className='text-2xl font-bold text-slate-800'>Recent places for rent</h2>
-              <Link 
-                className='text-blue-600 hover:text-blue-800 font-medium flex items-center gap-1 group' 
-                to={'/search?type=rent'}
-              >
-                Show all rentals
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 group-hover:translate-x-1 transition-transform" viewBox="0 0 20 20" fill="currentColor">
-                  <path fillRule="evenodd" d="M10.293 5.293a1 1 0 011.414 0l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414-1.414L12.586 11H5a1 1 0 110-2h7.586l-2.293-2.293a1 1 0 010-1.414z" clipRule="evenodd" />
-                </svg>
+          <section>
+            <div className='flex justify-between items-end mb-6'>
+              <div>
+                <h2 className='section-title'>Places for Rent</h2>
+                <p className="section-subtitle">Find your temporary home</p>
+              </div>
+              <Link to={'/search?type=rent'} className='text-primary-600 hover:text-primary-700 font-medium text-sm flex items-center gap-1'>
+                View all <FaArrowRight className="text-xs" />
               </Link>
             </div>
-            <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6'>
+            <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6'>
               {rentListings.map((listing) => (
                 <ListingItem listing={listing} key={listing._id} />
               ))}
             </div>
-          </div>
+          </section>
         )}
-        
+
+        {/* Sale */}
         {saleListings && saleListings.length > 0 && (
-          <div className=''>
-            <div className='flex justify-between items-center mb-6'>
-              <h2 className='text-2xl font-bold text-slate-800'>Recent places for sale</h2>
-              <Link 
-                className='text-blue-600 hover:text-blue-800 font-medium flex items-center gap-1 group' 
-                to={'/search?type=sale'}
-              >
-                Show all properties
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 group-hover:translate-x-1 transition-transform" viewBox="0 0 20 20" fill="currentColor">
-                  <path fillRule="evenodd" d="M10.293 5.293a1 1 0 011.414 0l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414-1.414L12.586 11H5a1 1 0 110-2h7.586l-2.293-2.293a1 1 0 010-1.414z" clipRule="evenodd" />
-                </svg>
+          <section>
+            <div className='flex justify-between items-end mb-6'>
+              <div>
+                <h2 className='section-title'>Places for Sale</h2>
+                <p className="section-subtitle">Find your forever home</p>
+              </div>
+              <Link to={'/search?type=sale'} className='text-primary-600 hover:text-primary-700 font-medium text-sm flex items-center gap-1'>
+                View all <FaArrowRight className="text-xs" />
               </Link>
             </div>
-            <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6'>
+            <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6'>
               {saleListings.map((listing) => (
                 <ListingItem listing={listing} key={listing._id} />
               ))}
             </div>
-          </div>
+          </section>
         )}
       </div>
     </div>
