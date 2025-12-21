@@ -12,6 +12,10 @@ dist
 dist-ssr
 
 .env
+.env.local
+.env.example
+.env.development
+.env.production
 
 *.local
 

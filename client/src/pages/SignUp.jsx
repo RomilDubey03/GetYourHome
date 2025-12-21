@@ -1,8 +1,8 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import axios from 'axios';
 import { FaUser, FaEnvelope, FaLock, FaArrowRight } from "react-icons/fa";
 import OAuth from "../components/OAuth.jsx";
+import api from "../utils/api.js";
 
 function SignUp() {
   const [formData, setFormData] = useState({ username: "", email: "", password: "" });
@@ -18,7 +18,7 @@ function SignUp() {
     e.preventDefault();
     setLoading(true);
     try {
-      await axios.post('/api/auth/signup', formData, { withCredentials: true });
+      await api.post('/api/auth/signup', formData);
       navigate('/sign-in');
     } catch (error) {
       setError(error.response?.data?.message || error.message);

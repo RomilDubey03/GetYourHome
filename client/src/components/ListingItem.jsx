@@ -3,7 +3,7 @@ import { MdLocationOn, MdOutlineBookmarkAdd } from "react-icons/md";
 import { BsFillBookmarksFill } from "react-icons/bs";
 import { useDispatch, useSelector } from "react-redux";
 import { addSavedListing, removeSavedListing } from "../redux/user/userSlice";
-import axios from "axios";
+import api from "../utils/api";
 
 export default function ListingItem({ listing }) {
   const { currentUser } = useSelector(state => state.user);
@@ -13,7 +13,7 @@ export default function ListingItem({ listing }) {
     if (currentUser) {
       try {
         dispatch(addSavedListing(listingId));
-        await axios.post(`/api/listing/save/${listingId}`);
+        await api.post(`/api/listing/save/${listingId}`);
       } catch (error) {
         alert(error.response?.data?.message || error.message);
       }
@@ -26,7 +26,7 @@ export default function ListingItem({ listing }) {
     if (currentUser) {
       try {
         dispatch(removeSavedListing(listingId));
-        await axios.post(`/api/listing/save/${listingId}?type=unsave`);
+        await api.post(`/api/listing/save/${listingId}?type=unsave`);
       } catch (error) {
         alert(error.response?.data?.message || error.message);
       }

@@ -1,10 +1,10 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import axios from 'axios';
 import { useDispatch, useSelector } from 'react-redux';
 import { signInStart, signInSuccess, signInFailure } from '../redux/user/userSlice.js';
 import OAuth from "../components/OAuth.jsx";
 import { FaEnvelope, FaLock, FaArrowRight, FaEye, FaEyeSlash } from "react-icons/fa";
+import api from "../utils/api.js";
 
 function Signin() {
   const [formData, setFormData] = useState({ email: "", password: "" });
@@ -21,7 +21,7 @@ function Signin() {
     e.preventDefault();
     dispatch(signInStart());
     try {
-      const { data } = await axios.post('/api/auth/signin', formData, { withCredentials: true });
+      const { data } = await api.post('/api/auth/signin', formData);
       dispatch(signInSuccess(data));
       navigate('/');
     } catch (error) {
