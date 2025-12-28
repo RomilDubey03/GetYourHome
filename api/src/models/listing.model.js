@@ -1,10 +1,11 @@
-import mongoose from 'mongoose';
+import mongoose from "mongoose";
 
 const listingSchema = new mongoose.Schema(
   {
     name: {
       type: String,
       required: true,
+      trim: true,
     },
     description: {
       type: String,
@@ -41,23 +42,26 @@ const listingSchema = new mongoose.Schema(
     type: {
       type: String,
       required: true,
+      enum: ["rent", "sale"],
     },
     offer: {
       type: Boolean,
       required: true,
     },
     imageUrls: {
-      type: Array,
+      type: [String],
       required: true,
     },
     userRef: {
-      type: String,
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
       required: true,
     },
   },
   { timestamps: true }
 );
 
-const Listing = mongoose.model('Listing', listingSchema);
+const Listing = mongoose.model("Listing", listingSchema);
 
+export { Listing };
 export default Listing;
