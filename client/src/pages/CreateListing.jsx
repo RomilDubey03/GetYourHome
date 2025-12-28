@@ -41,9 +41,6 @@ export default function CreateListing() {
         }
 
         const response = await axiosClient.post('/api/v1/upload/multiple', formDataUpload, {
-          headers: {
-            'Content-Type': 'multipart/form-data',
-          },
           onUploadProgress: (progressEvent) => {
             const progress = Math.round((progressEvent.loaded * 100) / progressEvent.total);
             setUploadProgress(progress);
