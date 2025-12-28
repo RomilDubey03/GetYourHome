@@ -1,6 +1,7 @@
 import express from "express";
 import cors from "cors";
 import cookieParser from "cookie-parser";
+import "dotenv/config";
 
 const app = express();
 
@@ -67,5 +68,28 @@ app.use((err, req, res, next) => {
     message,
   });
 });
+
+import connectToDB from "./db/dbconnect.js";
+import mongoose from "mongoose";
+
+// Initialize database connection
+try {
+  await connectToDB();
+
+  // Drop problematic unique index on saved field (one-time fix)
+  try {
+    await mongoose.connection.collection("users").dropIndex("saved_1");
+    console.log("Dropped saved_1 index successfully");
+  } catch (indexError) {
+    // Index might not exist, which is fine
+    if (indexError.code !== 27) {
+      // 27 = index not found
+      console.log("Index drop note:", indexError.message);
+    }
+  }
+} catch (error) {
+  console.error("Database connection failed during app initialization:", error);
+  process.exit(1);
+}
 
 export default app;
