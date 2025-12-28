@@ -1,17 +1,28 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { useDispatch, useSelector } from 'react-redux';
-import { signInStart, signInSuccess, signInFailure } from '../redux/user/userSlice.js';
+import { useDispatch, useSelector } from "react-redux";
+import { loginUser, clearError } from "../authSlice.js";
 import OAuth from "../components/OAuth.jsx";
 import { FaEnvelope, FaLock, FaArrowRight, FaEye, FaEyeSlash } from "react-icons/fa";
-import api from "../utils/api.js";
 
 function Signin() {
   const [formData, setFormData] = useState({ email: "", password: "" });
   const [showPassword, setShowPassword] = useState(false);
-  const { loading, error } = useSelector(state => state.user);
+  const { loading, error, isAuthenticated } = useSelector((state) => state.auth);
   const navigate = useNavigate();
   const dispatch = useDispatch();
+
+  useEffect(() => {
+    // Clear any previous errors when component mounts
+    dispatch(clearError());
+  }, [dispatch]);
+
+  useEffect(() => {
+    // Redirect if already authenticated
+    if (isAuthenticated) {
+      navigate("/");
+    }
+  }, [isAuthenticated, navigate]);
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.id]: e.target.value });
@@ -19,14 +30,7 @@ function Signin() {
 
   async function handleSubmit(e) {
     e.preventDefault();
-    dispatch(signInStart());
-    try {
-      const { data } = await api.post('/api/auth/signin', formData);
-      dispatch(signInSuccess(data));
-      navigate('/');
-    } catch (error) {
-      dispatch(signInFailure(error.response?.data?.message || error.message));
-    }
+    dispatch(loginUser(formData));
   }
 
   return (
@@ -91,7 +95,7 @@ function Signin() {
           <OAuth />
 
           <p className="text-center mt-6 text-sm text-slate-600">
-            Don't have an account?{' '}
+            Don't have an account?{" "}
             <Link to="/sign-up" className="text-primary-600 font-medium hover:underline">
               Sign up
             </Link>

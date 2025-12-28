@@ -5,15 +5,15 @@ import { useNavigate } from "react-router-dom";
 import { useSelector } from "react-redux";
 import { Label, Textarea, Radio } from "flowbite-react";
 import { Datepicker } from "flowbite-react";
-import axios from "axios";
+import axiosClient from "../utils/axiosClient.js";
 
 function BookModal({ listing }) {
-  const { currentUser } = useSelector((state) => state.user);
+  const { currentUser } = useSelector((state) => state.auth);
 
   const [openModal, setOpenModal] = useState(false);
   const [modalPlacement, setModalPlacement] = useState("center");
 
-    const [loading , setLoading] = useState(false)
+  const [loading, setLoading] = useState(false)
 
   const [formData, setFormData] = useState({
     checkInDate: new Date(2023, 3, 30),
@@ -34,26 +34,26 @@ function BookModal({ listing }) {
     console.log(formData);
 
     try {
-        
-        setLoading(prev=>true)
 
-        const {data} = await axios.post('/api/booking/create' , {
-            ...formData,
-            listingId : listing._id,
-            ownerId : listing.userRef,
-        })
-        console.log(data);
-        setOpenModal(false)
+      setLoading(prev => true)
+
+      const response = await axiosClient.post('/api/v1/bookings/create', {
+        ...formData,
+        listingId: listing._id,
+        ownerId: listing.userRef,
+      });
+      console.log(response.data);
+      setOpenModal(false);
 
     } catch (error) {
-        if(error.response){
-            alert(error.response.data.message)
-        }
-        else{
-            alert(error.message)
-        }
+      if (error.response) {
+        alert(error.response.data.message)
+      }
+      else {
+        alert(error.message)
+      }
     }
-    setLoading(prev=>false)
+    setLoading(prev => false)
   }
 
   return (

@@ -1,8 +1,7 @@
 import React, { useState } from "react";
 import { Button } from "flowbite-react";
 import { Badge } from "flowbite-react";
-import { Accordion } from "flowbite-react";
-import axios from "axios";
+import axiosClient from "../../utils/axiosClient.js";
 
 const statusPill = {
   pending: "warning",
@@ -11,8 +10,7 @@ const statusPill = {
 };
 
 const UserBookRequestCard = ({ request }) => {
-
-    const [booking , setBooking ] = useState(request)
+  const [booking, setBooking] = useState(request);
 
   const {
     status,
@@ -26,29 +24,24 @@ const UserBookRequestCard = ({ request }) => {
     updatedAt,
     _id,
   } = booking;
-  const ownerName = owner.username;
+  const ownerName = owner?.username || "Unknown";
 
-  async function resolveBooking(status) {
+  async function resolveBooking(newStatus) {
     try {
-        const updatedBooking = {...booking};
-        updatedBooking.resolvedAt =  Date.now()
-        updatedBooking.status =  status
-        updatedBooking.responseMessage =  ""
+      const updatedBooking = { ...booking };
+      updatedBooking.resolvedAt = Date.now();
+      updatedBooking.status = newStatus;
+      updatedBooking.responseMessage = "";
 
-        setBooking(updatedBooking)
-      const { data } = axios.post("/api/booking/resolve", {
+      setBooking(updatedBooking);
+      await axiosClient.post("/api/v1/bookings/resolve", {
         responseMessage: "",
         bookingId: _id,
-        status,
-        resolvedAt : Date.now()
+        status: newStatus,
+        resolvedAt: Date.now()
       });
     } catch (error) {
-        if(error.response){
-            alert(error.response.data.message);
-        }
-        else{
-            alert(error.message)
-        }
+      alert(error.message || "Failed to resolve booking");
     }
   }
 
@@ -74,7 +67,7 @@ const UserBookRequestCard = ({ request }) => {
               <span className="font-bold">Applied For:</span> {appliedFor}
             </p>
             <p>
-              <span className="font-bold">Owner :</span> {ownerName}
+              <span className="font-bold">Owner:</span> {ownerName}
             </p>
             <p>
               <span className="font-bold">Message:</span> {bookerMessage}
@@ -94,18 +87,16 @@ const UserBookRequestCard = ({ request }) => {
           </div>
         </div>
         <div className="flex items-center justify-center md:justify-center space-x-4">
-          {status && status == "pending" ? (
+          {status && status === "pending" ? (
             <>
-              <Button
-                color="success"
-              >
+              <Button color="success">
                 Awaiting Response
               </Button>
             </>
           ) : (
             <>
               <Button className="mt-2">
-                Responce Reseived at :{" "}
+                Response Received at:{" "}
                 {resolvedAt
                   ? new Date(resolvedAt).toLocaleDateString()
                   : new Date(updatedAt).toLocaleDateString()}

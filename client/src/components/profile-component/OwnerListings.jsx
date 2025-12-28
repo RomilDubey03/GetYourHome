@@ -1,31 +1,15 @@
-import { useSelector } from "react-redux";
-import { useRef, useState, useEffect } from "react";
-import {
-  updateUserStart,
-  updateUserSuccess,
-  updateUserFailure,
-  deleteUserFailure,
-  deleteUserStart,
-  deleteUserSuccess,
-  signOutUserStart,
-} from "../../redux/user/userSlice";
-import { useDispatch } from "react-redux";
+import { useSelector, useDispatch } from "react-redux";
+import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import { Button } from "flowbite-react";
-import { AiOutlineMenu } from "react-icons/ai";
-
 import { Table } from "flowbite-react";
-
+import axiosClient from "../../utils/axiosClient.js";
 
 export default function OwnerListings() {
-  const { currentUser, loading, error } = useSelector((state) => state.user);
+  const { currentUser, loading, error } = useSelector((state) => state.auth);
 
-  const [updateSuccess, setUpdateSuccess] = useState(false);
   const [showListingsError, setShowListingsError] = useState(false);
   const [userListings, setUserListings] = useState([]);
-  const dispatch = useDispatch();
 
-  
   useEffect(() => {
     handleShowListings();
   }, []);
@@ -33,14 +17,9 @@ export default function OwnerListings() {
   const handleShowListings = async () => {
     try {
       setShowListingsError(false);
-      const res = await fetch(`/api/user/listings/${currentUser._id}`);
-      const data = await res.json();
-      if (data.success === false) {
-        setShowListingsError(true);
-        return;
-      }
-      // console.log(data);
-      setUserListings(data)
+      const response = await axiosClient.get(`/api/v1/users/listings/${currentUser._id}`);
+      const data = response.data.data || response.data;
+      setUserListings(data);
     } catch (error) {
       setShowListingsError(true);
     }
@@ -48,15 +27,7 @@ export default function OwnerListings() {
 
   const handleListingDelete = async (listingId) => {
     try {
-      const res = await fetch(`/api/listing/delete/${listingId}`, {
-        method: "DELETE",
-      });
-      const data = await res.json();
-      if (data.success === false) {
-        console.log(data.message);
-        return;
-      }
-
+      await axiosClient.delete(`/api/v1/listings/delete/${listingId}`);
       setUserListings((prev) =>
         prev.filter((listing) => listing._id !== listingId)
       );
@@ -81,33 +52,30 @@ export default function OwnerListings() {
         <Table.Body className="divide-y">
           {userListings && userListings.length > 0
             ? userListings.map((listing) => (
-                <>
-                  <Table.Row key={listing._id} className="bg-white dark:border-gray-700 dark:bg-gray-800">
-                    <Table.Cell ><Link to={`/listing/${listing._id}`}> <img className="h-10" src={listing.imageUrls[0]} alt="" srcset="" /> </Link></Table.Cell>
-                    <Table.Cell className="whitespace-nowrap font-medium text-gray-900 dark:text-white">
-                      {listing.name}
-                    </Table.Cell>
-                    <Table.Cell>{listing.type}</Table.Cell>
-                    <Table.Cell>{listing.offer.toString()}</Table.Cell>
-                    <Table.Cell>{listing.regularPrice}</Table.Cell>
-                    <Table.Cell>
-
-                      <Link
-                        to={`/update-listing/${listing._id}`}
-                        className="font-medium text-cyan-600 hover:underline dark:text-cyan-500"
-                      >
-                        Edit
-                      </Link>
-                      <button
-                        onClick={() => handleListingDelete(listing._id)}
-                        className="text-red-700 uppercase ml-4"
-                      >
-                        Delete
-                      </button>
-                    </Table.Cell>
-                  </Table.Row>
-                </>
-              ))
+              <Table.Row key={listing._id} className="bg-white dark:border-gray-700 dark:bg-gray-800">
+                <Table.Cell><Link to={`/listing/${listing._id}`}> <img className="h-10" src={listing.imageUrls[0]} alt="" /> </Link></Table.Cell>
+                <Table.Cell className="whitespace-nowrap font-medium text-gray-900 dark:text-white">
+                  {listing.name}
+                </Table.Cell>
+                <Table.Cell>{listing.type}</Table.Cell>
+                <Table.Cell>{listing.offer.toString()}</Table.Cell>
+                <Table.Cell>{listing.regularPrice}</Table.Cell>
+                <Table.Cell>
+                  <Link
+                    to={`/update-listing/${listing._id}`}
+                    className="font-medium text-cyan-600 hover:underline dark:text-cyan-500"
+                  >
+                    Edit
+                  </Link>
+                  <button
+                    onClick={() => handleListingDelete(listing._id)}
+                    className="text-red-700 uppercase ml-4"
+                  >
+                    Delete
+                  </button>
+                </Table.Cell>
+              </Table.Row>
+            ))
             : null}
         </Table.Body>
       </Table>

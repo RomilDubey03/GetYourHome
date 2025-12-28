@@ -2,20 +2,20 @@ import { Link } from "react-router-dom";
 import { MdLocationOn, MdOutlineBookmarkAdd } from "react-icons/md";
 import { BsFillBookmarksFill } from "react-icons/bs";
 import { useDispatch, useSelector } from "react-redux";
-import { addSavedListing, removeSavedListing } from "../redux/user/userSlice";
-import api from "../utils/api";
+import { addSavedListing, removeSavedListing } from "../authSlice.js";
+import axiosClient from "../utils/axiosClient.js";
 
 export default function ListingItem({ listing }) {
-  const { currentUser } = useSelector(state => state.user);
+  const { currentUser } = useSelector(state => state.auth);
   const dispatch = useDispatch();
 
   async function addToBookMarkHandler(listingId) {
     if (currentUser) {
       try {
         dispatch(addSavedListing(listingId));
-        await api.post(`/api/listing/save/${listingId}`);
+        await axiosClient.post(`/api/v1/listings/save/${listingId}`);
       } catch (error) {
-        alert(error.response?.data?.message || error.message);
+        alert(error.message || 'Failed to save listing');
       }
     } else {
       alert('You must be logged in first');
@@ -26,9 +26,9 @@ export default function ListingItem({ listing }) {
     if (currentUser) {
       try {
         dispatch(removeSavedListing(listingId));
-        await api.post(`/api/listing/save/${listingId}?type=unsave`);
+        await axiosClient.post(`/api/v1/listings/save/${listingId}?type=unsave`);
       } catch (error) {
-        alert(error.response?.data?.message || error.message);
+        alert(error.message || 'Failed to unsave listing');
       }
     } else {
       alert('You must be logged in first');

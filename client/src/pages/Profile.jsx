@@ -1,28 +1,13 @@
-import { useSelector } from "react-redux";
+import { useSelector, useDispatch } from "react-redux";
 import { useRef, useState, useEffect } from "react";
-import {
-  getDownloadURL,
-  getStorage,
-  ref,
-  uploadBytesResumable,
-} from "firebase/storage";
-import { app } from "../firebase";
-import {
-  updateUserStart,
-  updateUserSuccess,
-  updateUserFailure,
-  deleteUserFailure,
-  deleteUserStart,
-  deleteUserSuccess,
-  signOutUserStart,
-} from "../redux/user/userSlice";
-import { useDispatch } from "react-redux";
-import { Link } from "react-router-dom";
-import { FaTrash, FaEdit, FaSignOutAlt, FaUserEdit } from "react-icons/fa";
+import { updateUser, deleteUser, logoutUser, clearError } from "../authSlice.js";
+import { Link, useNavigate } from "react-router-dom";
+import { FaTrash, FaSignOutAlt, FaCamera } from "react-icons/fa";
+import axiosClient from "../utils/axiosClient.js";
 
 export default function Profile() {
   const fileRef = useRef(null);
-  const { currentUser, loading, error } = useSelector((state) => state.user);
+  const { currentUser, loading, error, isAuthenticated } = useSelector((state) => state.auth);
   const [file, setFile] = useState(undefined);
   const [filePerc, setFilePerc] = useState(0);
   const [fileUploadError, setFileUploadError] = useState(false);
@@ -30,7 +15,19 @@ export default function Profile() {
   const [updateSuccess, setUpdateSuccess] = useState(false);
   const [showListingsError, setShowListingsError] = useState(false);
   const [userListings, setUserListings] = useState([]);
+  const [uploading, setUploading] = useState(false);
   const dispatch = useDispatch();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    dispatch(clearError());
+  }, [dispatch]);
+
+  useEffect(() => {
+    if (!isAuthenticated) {
+      navigate("/sign-in");
+    }
+  }, [isAuthenticated, navigate]);
 
   useEffect(() => {
     if (file) {
@@ -38,28 +35,31 @@ export default function Profile() {
     }
   }, [file]);
 
-  const handleFileUpload = (file) => {
-    const storage = getStorage(app);
-    const fileName = new Date().getTime() + file.name;
-    const storageRef = ref(storage, fileName);
-    const uploadTask = uploadBytesResumable(storageRef, file);
+  const handleFileUpload = async (file) => {
+    try {
+      setUploading(true);
+      setFileUploadError(false);
+      setFilePerc(0);
 
-    uploadTask.on(
-      "state_changed",
-      (snapshot) => {
-        const progress =
-          (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
-        setFilePerc(Math.round(progress));
-      },
-      (error) => {
-        setFileUploadError(true);
-      },
-      () => {
-        getDownloadURL(uploadTask.snapshot.ref).then((downloadURL) =>
-          setFormData({ ...formData, avatar: downloadURL })
-        );
-      }
-    );
+      const formDataUpload = new FormData();
+      formDataUpload.append('image', file);
+
+      const response = await axiosClient.post('/api/v1/upload/single', formDataUpload, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+        onUploadProgress: (progressEvent) => {
+          const progress = Math.round((progressEvent.loaded * 100) / progressEvent.total);
+          setFilePerc(progress);
+        },
+      });
+
+      setFormData({ ...formData, avatar: response.data.data.url });
+      setFilePerc(100);
+    } catch (error) {
+      setFileUploadError(true);
+    }
+    setUploading(false);
   };
 
   const handleChange = (e) => {
@@ -68,71 +68,33 @@ export default function Profile() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    try {
-      dispatch(updateUserStart());
-      const res = await fetch(`/api/user/update/${currentUser._id}`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(formData),
-      });
-      const data = await res.json();
-      if (data.success === false) {
-        dispatch(updateUserFailure(data.message));
-        return;
-      }
+    setUpdateSuccess(false);
 
-      dispatch(updateUserSuccess(data));
+    const resultAction = await dispatch(updateUser({
+      userId: currentUser._id,
+      userData: formData
+    }));
+
+    if (updateUser.fulfilled.match(resultAction)) {
       setUpdateSuccess(true);
-    } catch (error) {
-      dispatch(updateUserFailure(error.message));
     }
   };
 
   const handleDeleteUser = async () => {
-    try {
-      dispatch(deleteUserStart());
-      const res = await fetch(`/api/user/delete/${currentUser._id}`, {
-        method: "DELETE",
-      });
-      const data = await res.json();
-      if (data.success === false) {
-        dispatch(deleteUserFailure(data.message));
-        return;
-      }
-      dispatch(deleteUserSuccess(data));
-    } catch (error) {
-      dispatch(deleteUserFailure(error.message));
+    if (window.confirm("Are you sure you want to delete your account?")) {
+      await dispatch(deleteUser(currentUser._id));
     }
   };
 
   const handleSignOut = async () => {
-    try {
-      dispatch(signOutUserStart());
-      const res = await fetch("/api/auth/signout");
-      const data = await res.json();
-      if (data.success === false) {
-        dispatch(deleteUserFailure(data.message));
-        return;
-      }
-      dispatch(deleteUserSuccess(data));
-    } catch (error) {
-      dispatch(deleteUserFailure(data.message));
-    }
+    await dispatch(logoutUser());
   };
 
   const handleShowListings = async () => {
     try {
       setShowListingsError(false);
-      const res = await fetch(`/api/user/listings/${currentUser._id}`);
-      const data = await res.json();
-      if (data.success === false) {
-        setShowListingsError(true);
-        return;
-      }
-
-      setUserListings(data);
+      const response = await axiosClient.get(`/api/v1/users/listings/${currentUser._id}`);
+      setUserListings(response.data.data || response.data);
     } catch (error) {
       setShowListingsError(true);
     }
@@ -140,15 +102,7 @@ export default function Profile() {
 
   const handleListingDelete = async (listingId) => {
     try {
-      const res = await fetch(`/api/listing/delete/${listingId}`, {
-        method: "DELETE",
-      });
-      const data = await res.json();
-      if (data.success === false) {
-        console.log(data.message);
-        return;
-      }
-
+      await axiosClient.delete(`/api/v1/listings/delete/${listingId}`);
       setUserListings((prev) =>
         prev.filter((listing) => listing._id !== listingId)
       );
@@ -156,6 +110,11 @@ export default function Profile() {
       console.log(error.message);
     }
   };
+
+  if (!currentUser) {
+    return null;
+  }
+
   return (
     <div className="min-h-screen bg-gray-50 pt-20 pb-10">
       <div className="p-4 max-w-lg mx-auto">
@@ -177,20 +136,20 @@ export default function Profile() {
                 className="rounded-full h-32 w-32 object-cover border-4 border-gray-100 shadow-sm group-hover:opacity-90 transition-opacity"
               />
               <div className="absolute inset-0 flex items-center justify-center bg-black/30 rounded-full opacity-0 group-hover:opacity-100 transition-opacity">
-                <span className="text-white text-sm font-medium">Change</span>
+                <FaCamera className="text-white text-xl" />
               </div>
             </div>
 
             <p className="text-sm self-center text-center -mt-2 min-h-[20px]">
               {fileUploadError ? (
                 <span className="text-red-500 font-medium">
-                  Error Image upload (image must be less than 2 mb)
+                  Error uploading image (max 5MB)
                 </span>
-              ) : filePerc > 0 && filePerc < 100 ? (
+              ) : uploading ? (
                 <span className="text-slate-600 font-medium">{`Uploading ${filePerc}%`}</span>
               ) : filePerc === 100 ? (
                 <span className="text-green-600 font-medium">
-                  Image successfully uploaded!
+                  Image uploaded successfully!
                 </span>
               ) : (
                 ""
@@ -216,7 +175,7 @@ export default function Profile() {
               />
               <input
                 type="password"
-                placeholder="Pasword"
+                placeholder="Password"
                 onChange={handleChange}
                 id="password"
                 className="input-field"
@@ -224,10 +183,10 @@ export default function Profile() {
             </div>
 
             <button
-              disabled={loading}
+              disabled={loading || uploading}
               className="btn-primary w-full shadow-soft"
             >
-              {loading ? "Loading..." : "Update Profile"}
+              {loading ? "Updating..." : "Update Profile"}
             </button>
             <Link
               className="bg-green-600 text-white p-3 rounded-xl uppercase text-center hover:bg-green-700 shadow-soft transition-all duration-300 font-medium w-full block"
@@ -251,7 +210,7 @@ export default function Profile() {
 
           <p className="text-red-500 mt-5 text-center font-medium bg-red-50 p-2 rounded-lg empty:hidden">{error ? error : ""}</p>
           <p className="text-green-600 mt-5 text-center font-medium bg-green-50 p-2 rounded-lg empty:hidden">
-            {updateSuccess ? "User is updated successfully!" : ""}
+            {updateSuccess ? "User updated successfully!" : ""}
           </p>
         </div>
 

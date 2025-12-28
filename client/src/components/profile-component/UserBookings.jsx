@@ -1,20 +1,18 @@
 import React, { useEffect, useState } from "react";
 import UserBookRequestCard from "./UserBookRequestCard";
-import axios from "axios";
+import axiosClient from "../../utils/axiosClient.js";
+
 function UserBookings() {
   const [userBookings, setUserBookings] = useState(null);
 
   useEffect(() => {
     async function fetchBookings() {
       try {
-        const { data } = await axios.get("/api/booking/user-bookings");
+        const response = await axiosClient.get("/api/v1/bookings/user-bookings");
+        const data = response.data.data || response.data;
         setUserBookings(data);
       } catch (error) {
-        if (error.response) {
-          alert(error.response.data.message);
-        } else {
-          alert(error.message);
-        }
+        alert(error.message || "Failed to fetch bookings");
       }
     }
     fetchBookings();
@@ -36,7 +34,7 @@ function UserBookings() {
           <>
             <div className="h-full flex justify-center items-center ">
               <h1 className="font-bold text-5xl">
-                NO BOOKINGS ON YOU LISTINGS
+                NO BOOKINGS ON YOUR LISTINGS
               </h1>
             </div>
           </>

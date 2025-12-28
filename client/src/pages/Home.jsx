@@ -6,7 +6,7 @@ import SwiperCore from 'swiper';
 import 'swiper/css/bundle';
 import ListingItem from '../components/ListingItem';
 import { FaArrowRight } from 'react-icons/fa';
-import { fetchApi } from '../utils/api';
+import axiosClient from '../utils/axiosClient.js';
 
 export default function Home() {
   const [offerListings, setOfferListings] = useState([]);
@@ -17,8 +17,8 @@ export default function Home() {
   useEffect(() => {
     const fetchOfferListings = async () => {
       try {
-        const res = await fetchApi('/api/listing/get?offer=true&limit=4');
-        const data = await res.json();
+        const response = await axiosClient.get('/api/v1/listings/get?offer=true&limit=4');
+        const data = response.data.data || response.data;
         setOfferListings(data);
         fetchRentListings();
       } catch (error) {
@@ -27,8 +27,8 @@ export default function Home() {
     };
     const fetchRentListings = async () => {
       try {
-        const res = await fetchApi('/api/listing/get?type=rent&limit=4');
-        const data = await res.json();
+        const response = await axiosClient.get('/api/v1/listings/get?type=rent&limit=4');
+        const data = response.data.data || response.data;
         setRentListings(data);
         fetchSaleListings();
       } catch (error) {
@@ -38,8 +38,8 @@ export default function Home() {
 
     const fetchSaleListings = async () => {
       try {
-        const res = await fetchApi('/api/listing/get?type=sale&limit=4');
-        const data = await res.json();
+        const response = await axiosClient.get('/api/v1/listings/get?type=sale&limit=4');
+        const data = response.data.data || response.data;
         setSaleListings(data);
       } catch (error) {
         console.log(error);

@@ -1,14 +1,25 @@
-import React, { useState } from "react";
+import React, { useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { useDispatch, useSelector } from "react-redux";
+import { registerUser, clearError } from "../authSlice.js";
 import { FaUser, FaEnvelope, FaLock, FaArrowRight } from "react-icons/fa";
 import OAuth from "../components/OAuth.jsx";
-import api from "../utils/api.js";
 
 function SignUp() {
-  const [formData, setFormData] = useState({ username: "", email: "", password: "" });
-  const [error, setError] = useState(null);
-  const [loading, setLoading] = useState(false);
+  const [formData, setFormData] = React.useState({ username: "", email: "", password: "" });
+  const { loading, error, isAuthenticated } = useSelector((state) => state.auth);
   const navigate = useNavigate();
+  const dispatch = useDispatch();
+
+  useEffect(() => {
+    dispatch(clearError());
+  }, [dispatch]);
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      navigate("/");
+    }
+  }, [isAuthenticated, navigate]);
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.id]: e.target.value });
@@ -16,15 +27,7 @@ function SignUp() {
 
   async function handleSubmit(e) {
     e.preventDefault();
-    setLoading(true);
-    try {
-      await api.post('/api/auth/signup', formData);
-      navigate('/sign-in');
-    } catch (error) {
-      setError(error.response?.data?.message || error.message);
-    } finally {
-      setLoading(false);
-    }
+    dispatch(registerUser(formData));
   }
 
   return (
@@ -94,7 +97,7 @@ function SignUp() {
           <OAuth />
 
           <p className="text-center mt-6 text-sm text-slate-600">
-            Already have an account?{' '}
+            Already have an account?{" "}
             <Link to="/sign-in" className="text-primary-600 font-medium hover:underline">
               Sign in
             </Link>

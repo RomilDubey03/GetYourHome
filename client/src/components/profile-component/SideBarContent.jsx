@@ -1,48 +1,28 @@
 import React from "react";
-
 import { Button, Drawer, Sidebar, TextInput } from "flowbite-react";
 import { useState } from "react";
 import {
   HiChartPie,
   HiClipboard,
   HiCollection,
-  HiInformationCircle,
-  HiLogin,
-  HiPencil,
   HiSearch,
   HiShoppingBag,
   HiUsers,
   HiOutlineArrowLeft,
 } from "react-icons/hi";
 import { Link, useNavigate } from "react-router-dom";
-import {
-  updateUserStart,
-  updateUserSuccess,
-  updateUserFailure,
-  deleteUserFailure,
-  deleteUserStart,
-  deleteUserSuccess,
-  signOutUserStart,
-} from "../../redux/user/userSlice";
+import { logoutUser } from "../../authSlice.js";
 import { useDispatch, useSelector } from "react-redux";
 
 function SideBarContent({ isOpen, handleClose }) {
-  const { currentUser, loading, error } = useSelector((state) => state.user);
+  const { currentUser, loading, error } = useSelector((state) => state.auth);
   const navigate = useNavigate();
   const dispatch = useDispatch();
 
   const handleSignOut = async () => {
-    try {
-      dispatch(signOutUserStart());
-      const res = await fetch("/api/auth/signout");
-      const data = await res.json();
-      if (data.success === false) {
-        dispatch(deleteUserFailure(data.message));
-        return;
-      }
-      dispatch(deleteUserSuccess(data));
-    } catch (error) {
-      dispatch(deleteUserFailure(data.message));
+    const resultAction = await dispatch(logoutUser());
+    if (logoutUser.fulfilled.match(resultAction)) {
+      navigate("/");
     }
   };
 
@@ -79,15 +59,6 @@ function SideBarContent({ isOpen, handleClose }) {
                     <Link to="/profile?tab=saved">
                       <Sidebar.Item icon={HiUsers}>Saved Listings</Sidebar.Item>
                     </Link>
-                    {/* <Sidebar.Item href="/authentication/sign-in" icon={HiLogin}>
-                      Sign in
-                    </Sidebar.Item>
-                    <Sidebar.Item
-                      href="/authentication/sign-up"
-                      icon={HiPencil}
-                    >
-                      Sign up
-                    </Sidebar.Item> */}
                   </Sidebar.ItemGroup>
                   <Sidebar.ItemGroup>
                     <Link to={`/profile?tab=my-bookings`}>
@@ -96,18 +67,15 @@ function SideBarContent({ isOpen, handleClose }) {
                       </Sidebar.Item>
                     </Link>
                     <Link to={`/profile?tab=received-bookings`}>
-                    <Sidebar.Item
-                      icon={HiCollection}
-                    >
-                      Receieved Bookings
-                    </Sidebar.Item>
+                      <Sidebar.Item icon={HiCollection}>
+                        Received Bookings
+                      </Sidebar.Item>
                     </Link>
                     <Button
                       onClick={handleSignOut}
                       className="w-full"
                       gradientMonochrome="failure"
                     >
-                      {" "}
                       <HiOutlineArrowLeft className="mr-2 h-5 w-5" /> Log Out
                     </Button>
                   </Sidebar.ItemGroup>

@@ -1,22 +1,9 @@
 import React from "react";
-
 import { useEffect, useState } from "react";
 import { useLocation } from "react-router-dom";
 import Profile from "./Profile";
 import OwnerListings from "../components/profile-component/OwnerListings";
-
 import { useSelector } from "react-redux";
-import {
-  updateUserStart,
-  updateUserSuccess,
-  updateUserFailure,
-  deleteUserFailure,
-  deleteUserStart,
-  deleteUserSuccess,
-  signOutUserStart,
-} from "../redux/user/userSlice";
-import { useDispatch } from "react-redux";
-import { Link } from "react-router-dom";
 import { Button } from "flowbite-react";
 import { AiOutlineMenu } from "react-icons/ai";
 import SideBarContent from "../components/profile-component/SideBarContent";
@@ -29,6 +16,7 @@ function ProfileDashboard() {
   const [tab, setTab] = useState("profile");
   const [isOpen, setIsOpen] = useState(false);
   const handleClose = () => setIsOpen(false);
+  const { currentUser } = useSelector((state) => state.auth);
 
   useEffect(() => {
     const urlParams = new URLSearchParams(location.search);
@@ -37,22 +25,23 @@ function ProfileDashboard() {
       setTab(tabFromUrl);
     }
   }, [location.search]);
+
   return (
-    <div className="">
-      <Button onClick={() => setIsOpen(true)} className="m-4 mb-0 ">
+    <div className="min-h-screen bg-gray-50 pt-16">
+      <Button onClick={() => setIsOpen(true)} className="m-4 mb-0">
         <AiOutlineMenu className="h-6 w-6" />
       </Button>
       <SideBarContent isOpen={isOpen} handleClose={handleClose} />
 
-      {/* profile... */}
+      {/* Profile Tab */}
       {tab === "profile" && <Profile />}
-      {/* posts... */}
+      {/* Your Listings Tab */}
       {tab === "your-listings" && <OwnerListings />}
-      {/* users */}
+      {/* Saved Listings Tab */}
       {tab === 'saved' && <SavedListings />}
-      {/* user's bookings  */}
+      {/* User's Bookings Tab */}
       {tab === 'my-bookings' && <UserBookings />}
-      {/* received bookings */}
+      {/* Received Bookings Tab */}
       {tab === 'received-bookings' && <ReceivedBooking />}
     </div>
   );

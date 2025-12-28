@@ -8,7 +8,7 @@ import 'swiper/css/bundle';
 import { FaBath, FaBed, FaChair, FaMapMarkerAlt, FaParking, FaShare } from 'react-icons/fa';
 import Contact from '../components/Contact';
 import BookModal from '../components/BookModal';
-import { fetchApi } from '../utils/api';
+import axiosClient from '../utils/axiosClient.js';
 
 export default function Listing() {
   SwiperCore.use([Navigation]);
@@ -18,19 +18,14 @@ export default function Listing() {
   const [copied, setCopied] = useState(false);
   const [contact, setContact] = useState(false);
   const params = useParams();
-  const { currentUser } = useSelector((state) => state.user);
+  const { currentUser } = useSelector((state) => state.auth);
 
   useEffect(() => {
     const fetchListing = async () => {
       try {
         setLoading(true);
-        const res = await fetchApi(`/api/listing/get/${params.listingId}`);
-        const data = await res.json();
-        if (data.success === false) {
-          setError(true);
-          setLoading(false);
-          return;
-        }
+        const response = await axiosClient.get(`/api/v1/listings/get/${params.listingId}`);
+        const data = response.data.data || response.data;
         setListing(data);
         setLoading(false);
         setError(false);

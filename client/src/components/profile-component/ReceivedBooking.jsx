@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import ReceivedRequestCard from "./ReceivedRequestCard";
-import axios from "axios";
+import axiosClient from "../../utils/axiosClient.js";
 
 function ReceivedBooking() {
   const [receivedBooking, setReceivedBooking] = useState(null);
@@ -8,14 +8,11 @@ function ReceivedBooking() {
   useEffect(() => {
     async function fetchBookings() {
       try {
-        const { data } = await axios.get("/api/booking/received-bookings");
+        const response = await axiosClient.get("/api/v1/bookings/received-bookings");
+        const data = response.data.data || response.data;
         setReceivedBooking(data);
       } catch (error) {
-        if (error.response) {
-          alert(error.response.data.message);
-        } else {
-          alert(error.message);
-        }
+        alert(error.message || "Failed to fetch bookings");
       }
     }
     fetchBookings();
@@ -24,7 +21,7 @@ function ReceivedBooking() {
   return (
     <div>
       <div>
-        <h1 className="font-bold text-3xl text-center">Booking On You Listings</h1>
+        <h1 className="font-bold text-3xl text-center">Bookings On Your Listings</h1>
       </div>
 
       <div className=" h-[80vh] overflow-y-scroll">
@@ -38,7 +35,7 @@ function ReceivedBooking() {
           <>
             <div className="h-full flex justify-center items-center ">
               <h1 className="font-bold text-5xl">
-                NO BOOKINGS ON YOU LISTINGS
+                NO BOOKINGS ON YOUR LISTINGS
               </h1>
             </div>
           </>

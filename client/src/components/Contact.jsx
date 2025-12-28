@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
+import axiosClient from "../utils/axiosClient.js";
 
 export default function Contact({ listing }) {
   const [landlord, setLandlord] = useState(null);
@@ -11,8 +12,8 @@ export default function Contact({ listing }) {
   useEffect(() => {
     const fetchLandlord = async () => {
       try {
-        const res = await fetch(`/api/user/${listing.userRef}`);
-        const data = await res.json();
+        const response = await axiosClient.get(`/api/v1/users/${listing.userRef}`);
+        const data = response.data.data || response.data;
         setLandlord(data);
       } catch (error) {
         console.log(error);
