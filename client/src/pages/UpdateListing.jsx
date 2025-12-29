@@ -44,53 +44,6 @@ export default function UpdateListing() {
     fetchListing();
   }, [params.listingId]);
 
-  const handleImageSubmit = async () => {
-    if (files.length > 0 && files.length + formData.imageUrls.length < 7) {
-      setUploading(true);
-      setImageUploadError(false);
-      setUploadProgress(0);
-
-      try {
-        const formDataUpload = new FormData();
-        for (let i = 0; i < files.length; i++) {
-          formDataUpload.append('images', files[i]);
-        }
-
-        const response = await axiosClient.post('/api/v1/upload/multiple', formDataUpload, {
-          headers: {
-            'Content-Type': 'multipart/form-data',
-          },
-          onUploadProgress: (progressEvent) => {
-            const progress = Math.round((progressEvent.loaded * 100) / progressEvent.total);
-            setUploadProgress(progress);
-          },
-        });
-
-        const uploadedImages = response.data.data.images.map(img => img.url);
-        setFormData({
-          ...formData,
-          imageUrls: formData.imageUrls.concat(uploadedImages),
-        });
-        setImageUploadError(false);
-        setFiles([]);
-      } catch (err) {
-        setImageUploadError('Image upload failed (5MB max per image)');
-      }
-      setUploading(false);
-      setUploadProgress(0);
-    } else {
-      setImageUploadError('You can only upload 6 images per listing');
-      setUploading(false);
-    }
-  };
-
-  const handleRemoveImage = (index) => {
-    setFormData({
-      ...formData,
-      imageUrls: formData.imageUrls.filter((_, i) => i !== index),
-    });
-  };
-
   const handleChange = (e) => {
     if (e.target.id === 'sale' || e.target.id === 'rent') {
       setFormData({
@@ -125,21 +78,41 @@ export default function UpdateListing() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      if (formData.imageUrls.length < 1)
-        return setError('You must upload at least one image');
       if (+formData.regularPrice < +formData.discountPrice)
-        return setError('Discount price must be lower than regular price');
+        return setError("Discount price must be lower than regular price");
       setLoading(true);
       setError(false);
-      const response = await axiosClient.post(`/api/v1/listings/update/${params.listingId}`, {
-        ...formData,
-        userRef: currentUser._id,
+
+      const formDataToSend = new FormData();
+      if (files.length > 0) {
+        formDataToSend.append("image", files[0]);
+      }
+
+      // Append other form fields
+      Object.keys(formData).forEach((key) => {
+        // Skip imageUrls and internal fields (mongoose)
+        if (key !== "imageUrls" && key !== "_id" && key !== "__v" && key !== "createdAt" && key !== "updatedAt") {
+          formDataToSend.append(key, formData[key]);
+        }
       });
+      // Ensure userRef is sent
+      formDataToSend.append("userRef", currentUser._id);
+
+
+      const response = await axiosClient.post(
+        `/api/v1/listings/update/${params.listingId}`,
+        formDataToSend,
+        {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+        }
+      );
       setLoading(false);
       const data = response.data.data || response.data;
       navigate(`/listing/${data._id}`);
     } catch (error) {
-      setError(error.message || 'Failed to update listing');
+      setError(error.message || "Failed to update listing");
       setLoading(false);
     }
   };
@@ -321,22 +294,13 @@ export default function UpdateListing() {
                       type='file'
                       id='images'
                       accept='image/*'
-                      multiple
                     />
                     <FaUpload className='text-gray-400 text-2xl mb-2' />
-                    <span className='text-gray-500 font-medium'>Click to select</span>
+                    <span className='text-gray-500 font-medium'>Change image (optional)</span>
                     {files.length > 0 && (
-                      <span className='text-primary-600 text-sm mt-1'>{files.length} files selected</span>
+                      <span className='text-primary-600 text-sm mt-1'>{files[0].name}</span>
                     )}
                   </label>
-                  <button
-                    type='button'
-                    disabled={uploading || files.length === 0}
-                    onClick={handleImageSubmit}
-                    className='px-6 py-3 text-green-700 border border-green-700 rounded-xl uppercase hover:bg-green-50 disabled:opacity-50 transition-colors font-medium h-fit self-center'
-                  >
-                    {uploading ? `${uploadProgress}%` : 'Upload'}
-                  </button>
                 </div>
               </div>
 
@@ -344,27 +308,15 @@ export default function UpdateListing() {
                 {imageUploadError && imageUploadError}
               </p>
 
-              <div className='grid grid-cols-2 gap-4 max-h-[400px] overflow-y-auto pr-2 custom-scrollbar'>
-                {formData.imageUrls.length > 0 &&
-                  formData.imageUrls.map((url, index) => (
-                    <div
-                      key={url}
-                      className='relative group rounded-xl overflow-hidden shadow-sm border border-gray-200'
-                    >
-                      <img
-                        src={url}
-                        alt='listing image'
-                        className='w-full h-32 object-cover'
-                      />
-                      <button
-                        type='button'
-                        onClick={() => handleRemoveImage(index)}
-                        className='absolute top-2 right-2 p-2 bg-white/90 text-red-600 rounded-full hover:bg-white transition-colors shadow-sm opacity-0 group-hover:opacity-100'
-                      >
-                        <FaTrash />
-                      </button>
-                    </div>
-                  ))}
+              <div className='flex flex-col gap-4 max-h-[400px] overflow-y-auto pr-2 custom-scrollbar'>
+                {/* Current image display */}
+                <div className='relative group rounded-xl overflow-hidden shadow-sm border border-gray-200'>
+                  <img
+                    src={formData.imageUrls} // Assuming imageUrls is single string now or kept as display
+                    alt='listing image'
+                    className='w-full h-32 object-cover'
+                  />
+                </div>
               </div>
 
               <button

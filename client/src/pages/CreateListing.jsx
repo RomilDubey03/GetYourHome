@@ -28,50 +28,6 @@ export default function CreateListing() {
   const [error, setError] = useState(false);
   const [loading, setLoading] = useState(false);
 
-  const handleImageSubmit = async () => {
-    if (files.length > 0 && files.length + formData.imageUrls.length < 7) {
-      setUploading(true);
-      setImageUploadError(false);
-      setUploadProgress(0);
-
-      try {
-        const formDataUpload = new FormData();
-        for (let i = 0; i < files.length; i++) {
-          formDataUpload.append('images', files[i]);
-        }
-
-        const response = await axiosClient.post('/api/v1/upload/multiple', formDataUpload, {
-          onUploadProgress: (progressEvent) => {
-            const progress = Math.round((progressEvent.loaded * 100) / progressEvent.total);
-            setUploadProgress(progress);
-          },
-        });
-
-        const uploadedImages = response.data.data.images.map(img => img.url);
-        setFormData({
-          ...formData,
-          imageUrls: formData.imageUrls.concat(uploadedImages),
-        });
-        setImageUploadError(false);
-        setFiles([]);
-      } catch (err) {
-        setImageUploadError('Image upload failed (5MB max per image)');
-      }
-      setUploading(false);
-      setUploadProgress(0);
-    } else {
-      setImageUploadError('You can only upload 6 images per listing');
-      setUploading(false);
-    }
-  };
-
-  const handleRemoveImage = (index) => {
-    setFormData({
-      ...formData,
-      imageUrls: formData.imageUrls.filter((_, i) => i !== index),
-    });
-  };
-
   const handleChange = (e) => {
     if (e.target.id === 'sale' || e.target.id === 'rent') {
       setFormData({
@@ -106,21 +62,42 @@ export default function CreateListing() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      if (formData.imageUrls.length < 1)
-        return setError('You must upload at least one image');
+      if (files.length < 1)
+        return setError("You must upload at least one image");
       if (+formData.regularPrice < +formData.discountPrice)
-        return setError('Discount price must be lower than regular price');
+        return setError("Discount price must be lower than regular price");
       setLoading(true);
       setError(false);
-      const response = await axiosClient.post('/api/v1/listings/create', {
-        ...formData,
-        userRef: currentUser._id,
+
+      const formDataToSend = new FormData();
+      formDataToSend.append("image", files[0]);
+
+      // Append other form fields
+      Object.keys(formData).forEach((key) => {
+        // Skip imageUrls as we are sending the file directly
+        if (key !== "imageUrls") {
+          formDataToSend.append(key, formData[key]);
+        }
       });
+      // Still sending userRef if expected by backend schema validation, 
+      // but typically this comes from req.user in backend. 
+      // Based on previous code: userRef: currentUser._id was sent in body.
+      formDataToSend.append("userRef", currentUser._id);
+
+      const response = await axiosClient.post(
+        "/api/v1/listings/create",
+        formDataToSend,
+        {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+        }
+      );
       setLoading(false);
       const data = response.data.data || response.data;
       navigate(`/listing/${data._id}`);
     } catch (error) {
-      setError(error.message || 'Failed to create listing');
+      setError(error.message || "Failed to create listing");
       setLoading(false);
     }
   };
@@ -292,7 +269,7 @@ export default function CreateListing() {
                 <p className='font-semibold text-slate-700 mb-2'>
                   Property Images
                   <span className='font-normal text-slate-400 ml-2 text-sm'>
-                    (Max 6 images, first is cover)
+                    (Max 1 image, first is cover)
                   </span>
                 </p>
                 <div className='flex gap-4'>
@@ -303,22 +280,13 @@ export default function CreateListing() {
                       type='file'
                       id='images'
                       accept='image/*'
-                      multiple
                     />
                     <FaUpload className='text-gray-400 text-2xl mb-2' />
-                    <span className='text-gray-500 font-medium'>Click to select</span>
+                    <span className='text-gray-500 font-medium'>Click to select image</span>
                     {files.length > 0 && (
-                      <span className='text-primary-600 text-sm mt-1'>{files.length} files selected</span>
+                      <span className='text-primary-600 text-sm mt-1'>{files[0].name}</span>
                     )}
                   </label>
-                  <button
-                    type='button'
-                    disabled={uploading || files.length === 0}
-                    onClick={handleImageSubmit}
-                    className='px-6 py-3 text-green-700 border border-green-700 rounded-xl uppercase hover:bg-green-50 disabled:opacity-50 transition-colors font-medium h-fit self-center'
-                  >
-                    {uploading ? `${uploadProgress}%` : 'Upload'}
-                  </button>
                 </div>
               </div>
 
@@ -326,27 +294,8 @@ export default function CreateListing() {
                 {imageUploadError && imageUploadError}
               </p>
 
-              <div className='grid grid-cols-2 gap-4 max-h-[400px] overflow-y-auto pr-2 custom-scrollbar'>
-                {formData.imageUrls.length > 0 &&
-                  formData.imageUrls.map((url, index) => (
-                    <div
-                      key={url}
-                      className='relative group rounded-xl overflow-hidden shadow-sm border border-gray-200'
-                    >
-                      <img
-                        src={url}
-                        alt='listing image'
-                        className='w-full h-32 object-cover'
-                      />
-                      <button
-                        type='button'
-                        onClick={() => handleRemoveImage(index)}
-                        className='absolute top-2 right-2 p-2 bg-white/90 text-red-600 rounded-full hover:bg-white transition-colors shadow-sm opacity-0 group-hover:opacity-100'
-                      >
-                        <FaTrash />
-                      </button>
-                    </div>
-                  ))}
+              <div className='flex flex-col gap-4 max-h-[400px] overflow-y-auto pr-2 custom-scrollbar'>
+                {/* Image preview could be added here if needed, but removing old list for now */}
               </div>
 
               <button

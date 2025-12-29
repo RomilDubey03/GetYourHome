@@ -7,7 +7,7 @@ import { Navigation } from 'swiper/modules';
 import 'swiper/css/bundle';
 import { FaBath, FaBed, FaChair, FaMapMarkerAlt, FaParking, FaShare } from 'react-icons/fa';
 import Contact from '../components/Contact';
-import BookModal from '../components/BookModal';
+
 import axiosClient from '../utils/axiosClient.js';
 
 export default function Listing() {
@@ -146,7 +146,7 @@ export default function Listing() {
                       ) : (
                         <Contact listing={listing} />
                       )}
-                      <BookModal listing={listing} />
+
                     </div>
                   ) : (
                     <p className='text-slate-500 text-sm text-center py-4'>

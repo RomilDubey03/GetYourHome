@@ -61,16 +61,7 @@ function SideBarContent({ isOpen, handleClose }) {
                     </Link>
                   </Sidebar.ItemGroup>
                   <Sidebar.ItemGroup>
-                    <Link to={`/profile?tab=my-bookings`}>
-                      <Sidebar.Item icon={HiClipboard}>
-                        My-Bookings
-                      </Sidebar.Item>
-                    </Link>
-                    <Link to={`/profile?tab=received-bookings`}>
-                      <Sidebar.Item icon={HiCollection}>
-                        Received Bookings
-                      </Sidebar.Item>
-                    </Link>
+
                     <Button
                       onClick={handleSignOut}
                       className="w-full"

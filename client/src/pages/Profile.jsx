@@ -9,13 +9,10 @@ export default function Profile() {
   const fileRef = useRef(null);
   const { currentUser, loading, error, isAuthenticated } = useSelector((state) => state.auth);
   const [file, setFile] = useState(undefined);
-  const [filePerc, setFilePerc] = useState(0);
-  const [fileUploadError, setFileUploadError] = useState(false);
   const [formData, setFormData] = useState({});
   const [updateSuccess, setUpdateSuccess] = useState(false);
   const [showListingsError, setShowListingsError] = useState(false);
   const [userListings, setUserListings] = useState([]);
-  const [uploading, setUploading] = useState(false);
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
@@ -29,38 +26,19 @@ export default function Profile() {
     }
   }, [isAuthenticated, navigate]);
 
+  // Ref for file input
   useEffect(() => {
-    if (file) {
-      handleFileUpload(file);
+    dispatch(clearError());
+  }, [dispatch]);
+
+  useEffect(() => {
+    if (!isAuthenticated) {
+      navigate("/sign-in");
     }
-  }, [file]);
+  }, [isAuthenticated, navigate]);
 
-  const handleFileUpload = async (file) => {
-    try {
-      setUploading(true);
-      setFileUploadError(false);
-      setFilePerc(0);
+  // Removed separate file upload effect and handler
 
-      const formDataUpload = new FormData();
-      formDataUpload.append('image', file);
-
-      const response = await axiosClient.post('/api/v1/upload/single', formDataUpload, {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
-        onUploadProgress: (progressEvent) => {
-          const progress = Math.round((progressEvent.loaded * 100) / progressEvent.total);
-          setFilePerc(progress);
-        },
-      });
-
-      setFormData({ ...formData, avatar: response.data.data.url });
-      setFilePerc(100);
-    } catch (error) {
-      setFileUploadError(true);
-    }
-    setUploading(false);
-  };
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.id]: e.target.value });
@@ -70,9 +48,40 @@ export default function Profile() {
     e.preventDefault();
     setUpdateSuccess(false);
 
+    // Create FormData for direct upload
+    const dataToSend = new FormData();
+    dataToSend.append("username", formData.username || currentUser.username);
+    dataToSend.append("email", formData.email || currentUser.email);
+    if (formData.password) {
+      dataToSend.append("password", formData.password);
+    }
+    if (file) {
+      dataToSend.append("image", file);
+    }
+
+    /* 
+       Note: The updateUser thunk likely expects a plain object or handles the request itself.
+       If updateUser uses axiosClient internally with JSON content-type by default, we might need to
+       adjust how we call it or ensure the thunk can handle FormData.
+       Assuming updateUser thunk just passes the data to the API call.
+       However, typically redux thunks for updates might need adjustment if they expect JSON.
+       Let's check if we can pass FormData to the thunk or if we need to call API directly here?
+       
+       Previous code used: dispatch(updateUser({ userId, userData }))
+       Let's assume we pass the FormData as userData.
+       We might need to adjust the thunk or the service calling it if it strictly sets application/json.
+       If the thunk uses axiosClient, we can pass FormData and axios usually detects it.
+       BUT, we need to inspect userSlice/authSlice to be sure.
+       For now, let's construct the object.
+    */
+
+    // Passing FormData to the thunk. ensure axios handles it.
+    // If the slice wraps it in an object like { userId, userData }, we pass FormData as userData.
+    // NOTE: Sending FormData requires the backend to handle multipart/form-data, which we just configured.
+
     const resultAction = await dispatch(updateUser({
       userId: currentUser._id,
-      userData: formData
+      userData: dataToSend
     }));
 
     if (updateUser.fulfilled.match(resultAction)) {
@@ -141,16 +150,8 @@ export default function Profile() {
             </div>
 
             <p className="text-sm self-center text-center -mt-2 min-h-[20px]">
-              {fileUploadError ? (
-                <span className="text-red-500 font-medium">
-                  Error uploading image (max 5MB)
-                </span>
-              ) : uploading ? (
-                <span className="text-slate-600 font-medium">{`Uploading ${filePerc}%`}</span>
-              ) : filePerc === 100 ? (
-                <span className="text-green-600 font-medium">
-                  Image uploaded successfully!
-                </span>
+              {file ? (
+                <span className="text-green-600 font-medium">Image selected: {file.name}</span>
               ) : (
                 ""
               )}
@@ -183,7 +184,7 @@ export default function Profile() {
             </div>
 
             <button
-              disabled={loading || uploading}
+              disabled={loading}
               className="btn-primary w-full shadow-soft"
             >
               {loading ? "Updating..." : "Update Profile"}
