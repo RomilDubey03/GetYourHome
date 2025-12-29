@@ -91,7 +91,7 @@ export default function Listing() {
                   </span>
                   {listing.offer && (
                     <span className='text-xs font-medium px-2.5 py-1 rounded bg-amber-50 text-amber-700'>
-                      ${+listing.regularPrice - +listing.discountPrice} Off
+                      ₹{+listing.regularPrice - +listing.discountPrice} Off
                     </span>
                   )}
                 </div>
@@ -104,7 +104,7 @@ export default function Listing() {
                 </div>
 
                 <p className='text-2xl font-bold text-primary-600 mb-6'>
-                  ${listing.offer ? listing.discountPrice.toLocaleString('en-US') : listing.regularPrice.toLocaleString('en-US')}
+                  ₹{listing.offer ? listing.discountPrice.toLocaleString('en-IN') : listing.regularPrice.toLocaleString('en-IN')}
                   {listing.type === 'rent' && <span className='text-base text-slate-500 font-normal'>/month</span>}
                 </p>
 
