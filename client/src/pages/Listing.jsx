@@ -57,11 +57,9 @@ export default function Listing() {
           {/* Image Gallery */}
           <div className="relative">
             <Swiper navigation className="h-[350px] md:h-[500px]">
-              {listing.imageUrls.map((url) => (
-                <SwiperSlide key={url}>
-                  <div className='h-full w-full bg-cover bg-center' style={{ backgroundImage: `url(${url})` }} />
-                </SwiperSlide>
-              ))}
+              <SwiperSlide>
+                <div className='h-full w-full bg-cover bg-center' style={{ backgroundImage: `url(${listing.imageUrls})` }} />
+              </SwiperSlide>
             </Swiper>
 
             <button

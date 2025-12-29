@@ -10,7 +10,7 @@ export default function UpdateListing() {
   const params = useParams();
   const [files, setFiles] = useState([]);
   const [formData, setFormData] = useState({
-    imageUrls: [],
+    imageUrls: '',
     name: '',
     description: '',
     address: '',
@@ -283,7 +283,7 @@ export default function UpdateListing() {
                 <p className='font-semibold text-slate-700 mb-2'>
                   Property Images
                   <span className='font-normal text-slate-400 ml-2 text-sm'>
-                    (Max 6 images, first is cover)
+                    (Max 1 image)
                   </span>
                 </p>
                 <div className='flex gap-4'>

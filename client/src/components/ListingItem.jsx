@@ -39,7 +39,7 @@ export default function ListingItem({ listing }) {
     <div className="card group flex flex-col h-full overflow-hidden">
       <Link to={`/listing/${listing._id}`} className="relative block h-48 overflow-hidden">
         <img
-          src={listing.imageUrls[0] || "https://53.fs1.hubspotusercontent-na1.net/hub/53/hubfs/Sales_Blog/real-estate-business-compressor.jpg?width=595&height=400&name=real-estate-business-compressor.jpg"}
+          src={listing.imageUrls || "https://53.fs1.hubspotusercontent-na1.net/hub/53/hubfs/Sales_Blog/real-estate-business-compressor.jpg?width=600&height=400&name=real-estate-business-compressor.jpg"}
           alt="listing cover"
           className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-300"
         />

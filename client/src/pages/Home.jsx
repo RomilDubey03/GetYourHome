@@ -87,7 +87,7 @@ export default function Home() {
               <SwiperSlide key={listing._id}>
                 <div
                   style={{
-                    background: `linear-gradient(to top, rgba(0,0,0,0.7), rgba(0,0,0,0.1)), url(${listing.imageUrls[0]}) center/cover no-repeat`,
+                    background: `linear-gradient(to top, rgba(0,0,0,0.7), rgba(0,0,0,0.1)), url(${listing.imageUrls}) center/cover no-repeat`,
                   }}
                   className='h-full flex items-end p-8 md:p-10'
                 >
