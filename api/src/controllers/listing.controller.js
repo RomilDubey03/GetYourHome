@@ -3,11 +3,22 @@ import { User } from "../models/user.model.js";
 import asyncHandler from "../utils/asyncHandler.js";
 import ApiResponse from "../utils/ApiResponse.js";
 import ApiError from "../utils/ApiError.js";
+import { uploadOnCloudinary } from "../utils/cloudinary.js";
 
 // Create listing
 const createListing = asyncHandler(async (req, res) => {
+  if (!req.file) {
+    throw new ApiError(400, "No file uploaded");
+  }
+
+  const result = await uploadOnCloudinary(req.file.path);
+
+  if (!result) {
+    throw new ApiError(500, "Failed to upload image to Cloudinary");
+  }
   const listing = await Listing.create({
     ...req.body,
+    imageUrls: result.secure_url,
     userRef: req.user.id,
   });
 
@@ -47,9 +58,19 @@ const updateListing = asyncHandler(async (req, res) => {
     throw new ApiError(401, "You can only update your own listings!");
   }
 
+  const updateData = { ...req.body };
+
+  if (req.file) {
+    const result = await uploadOnCloudinary(req.file.path);
+    if (!result) {
+      throw new ApiError(500, "Failed to upload image to Cloudinary");
+    }
+    updateData.imageUrls = result.secure_url;
+  }
+
   const updatedListing = await Listing.findByIdAndUpdate(
     req.params.id,
-    req.body,
+    updateData,
     { new: true }
   );
 

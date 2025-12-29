@@ -42,15 +42,11 @@ app.use(cookieParser());
 import userRouter from "./routes/user.route.js";
 import authRouter from "./routes/auth.route.js";
 import listingRouter from "./routes/listing.route.js";
-import bookingRouter from "./routes/booking.route.js";
-import uploadRouter from "./routes/upload.route.js";
 
 // Routes
 app.use("/api/v1/users", userRouter);
 app.use("/api/v1/auth", authRouter);
 app.use("/api/v1/listings", listingRouter);
-app.use("/api/v1/bookings", bookingRouter);
-app.use("/api/v1/upload", uploadRouter);
 
 // Health check
 app.get("/", (req, res) => {

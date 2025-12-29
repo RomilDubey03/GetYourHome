@@ -11,6 +11,12 @@ const cookieOptions = {
   maxAge: 7 * 24 * 60 * 60 * 1000, // 7d
 };
 
+const clearCookieOptions = {
+  httpOnly: true,
+  secure: true,
+  sameSite: "None",
+};
+
 // Register
 const signup = asyncHandler(async (req, res) => {
   const { username, email, password } = req.body;
@@ -122,7 +128,7 @@ const google = asyncHandler(async (req, res) => {
 const signOut = asyncHandler(async (req, res) => {
   return res
     .status(200)
-    .clearCookie("access_token", cookieOptions)
+    .clearCookie("access_token", clearCookieOptions)
     .json(new ApiResponse(200, {}, "User logged out successfully"));
 });
 

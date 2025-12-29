@@ -49,7 +49,7 @@ const listingSchema = new mongoose.Schema(
       required: true,
     },
     imageUrls: {
-      type: [String],
+      type: String,
       required: true,
     },
     userRef: {

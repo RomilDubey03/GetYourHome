@@ -4,9 +4,16 @@ import asyncHandler from "../utils/asyncHandler.js";
 import ApiResponse from "../utils/ApiResponse.js";
 import ApiError from "../utils/ApiError.js";
 import bcrypt from "bcryptjs";
+import { uploadOnCloudinary } from "../utils/cloudinary.js";
 
 // Cookie options
 const cookieOptions = {
+  httpOnly: true,
+  secure: true,
+  sameSite: "None",
+};
+
+const clearCookieOptions = {
   httpOnly: true,
   secure: true,
   sameSite: "None",
@@ -21,8 +28,20 @@ const updateUserInfo = asyncHandler(async (req, res) => {
   const updateData = {
     username: req.body.username,
     email: req.body.email,
-    avatar: req.body.avatar,
   };
+
+  // If avatar file is uploaded, upload to cloudinary and update avatar
+  if (req.file) {
+    const result = await uploadOnCloudinary(req.file.path);
+    if (result) {
+      updateData.avatar = result.secure_url;
+    }
+  } else if (req.body.avatar) {
+    // If no new file but avatar URL provided (e.g. keeping existing), though typically unnecessary with this logic
+    // Ideally we rely on req.file for updates, or just don't update if not present.
+    // But preserving existing behavior if frontend sends URL:
+    updateData.avatar = req.body.avatar;
+  }
 
   // If password is being updated, hash it
   if (req.body.password) {
@@ -54,7 +73,7 @@ const deleteUser = asyncHandler(async (req, res) => {
 
   return res
     .status(200)
-    .clearCookie("access_token", cookieOptions)
+    .clearCookie("access_token", clearCookieOptions)
     .json(new ApiResponse(200, {}, "User deleted successfully"));
 });
 

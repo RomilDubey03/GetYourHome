@@ -35,22 +35,7 @@ const userSchema = new mongoose.Schema(
       ],
       default: [],
     },
-    receivedBookings: {
-      type: [
-        {
-          type: mongoose.Schema.Types.ObjectId,
-          ref: "Booking",
-        },
-      ],
-    },
-    userBookings: {
-      type: [
-        {
-          type: mongoose.Schema.Types.ObjectId,
-          ref: "Booking",
-        },
-      ],
-    },
+
     listings: {
       type: [
         {
